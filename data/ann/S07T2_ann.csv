@@ -1,0 +1,18 @@
+start_time,stop_time,annotation_str,annotation
+0,10.0,others,8
+10,56.0,catheter preparation,0
+56,60.0,temporal removement of an artificial airway,1
+60,75.0,suctioning phlegm,2
+75,80.0,refitting the artificial airway,3
+80,110.0,catheter disinfection,4
+110,116.0,discarding gloves,5
+116,125.0,positioning,6
+125,151.0,auscultation,7
+151,195.0,catheter preparation,0
+195,200.0,temporal removement of an artificial airway,1
+200,215.0,suctioning phlegm,2
+215,219.0,refitting the artificial airway,3
+219,247.0,catheter disinfection,4
+247,255.0,discarding gloves,5
+255,285.0,auscultation,7
+285,289.5,others,8
