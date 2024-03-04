@@ -63,6 +63,7 @@ class Feeder(Dataset):
 
     return data, label, index
 
+
 if __name__ == '__main__':
   root_path = '/Users/vibuitruong/Documents/GitHub/ABC_Challenge_2024_bun_bo_team/data/Dataset-2'
   dataset = Feeder(root_path)
