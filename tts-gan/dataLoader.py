@@ -60,7 +60,7 @@ class_dict = {'StandingUpFS':0,'StandingUpFL':1,'Walking':2,'Running':3,'GoingUp
 
 class unimib_load_dataset(Dataset):
     def __init__(self, 
-        verbose = False,
+        verbose = True,
         incl_xyz_accel = False, #include component accel_x/y/z in ____X data
         incl_rms_accel = True, #add rms value (total accel) of accel_x/y/z in ____X data
         incl_val_group = False, #True => returns x/y_test, x/y_validation, x/y_train

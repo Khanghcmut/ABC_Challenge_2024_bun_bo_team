@@ -10,9 +10,9 @@ import sys
 import tarfile
 
 import numpy as np
-import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
-from six.moves import urllib
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior()
+import urllib
 from tqdm import tqdm
 
 
@@ -20,8 +20,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 MODEL_DIR = '/tmp/imagenet'
 DATA_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
 softmax = None
-config = tf.ConfigProto()
-# config = tf.ConfigProto(device_count = {'GPU': 0})
+config = tf.compat.v1.ConfigProto()
+# config = tf.compat.v1.ConfigProto(device_count = {'GPU': 0})
 config.gpu_options.visible_device_list= '0'
 config.gpu_options.allow_growth = True
 
@@ -39,7 +39,7 @@ def get_inception_score(images, splits=10):
         img = img.astype(np.float32)
         inps.append(np.expand_dims(img, 0))
     bs = 128
-    with tf.Session(config=config) as sess:
+    with tf.compat.v1.Session(config=config) as sess:
         preds = []
         n_batches = int(math.ceil(float(len(inps)) / float(bs)))
         for i in tqdm(range(n_batches), desc="Calculate inception score"):
@@ -78,13 +78,13 @@ def _init_inception():
         statinfo = os.stat(filepath)
         print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
     tarfile.open(filepath, 'r:gz').extractall(MODEL_DIR)
-    with tf.gfile.FastGFile(os.path.join(
+    with tf.compat.v1.gfile.FastGFile(os.path.join(
             MODEL_DIR, 'classify_image_graph_def.pb'), 'rb') as f:
-        graph_def = tf.GraphDef()
+        graph_def = tf.compat.v1.GraphDef()
         graph_def.ParseFromString(f.read())
-        _ = tf.import_graph_def(graph_def, name='')
+        _ = tf.compat.v1.import_graph_def(graph_def, name='')
     # Works with an arbitrary minibatch size.
-    with tf.Session(config=config) as sess:
+    with tf.compat.v1.Session(config=config) as sess:
         pool3 = sess.graph.get_tensor_by_name('pool_3:0')
         ops = pool3.graph.get_operations()
         for op_idx, op in enumerate(ops):
@@ -98,8 +98,8 @@ def _init_inception():
                             new_shape.append(None)
                         else:
                             new_shape.append(s)
-                    o.__dict__['_shape_val'] = tf.TensorShape(new_shape)
+                    o.__dict__['_shape_val'] = tf.compat.v1.TensorShape(new_shape)
         w = sess.graph.get_operation_by_name("softmax/logits/MatMul").inputs[1]
-        logits = tf.matmul(tf.squeeze(pool3, [1, 2]), w)
-        softmax = tf.nn.softmax(logits)
+        logits = tf.compat.v1.matmul(tf.compat.v1.squeeze(pool3, [1, 2]), w)
+        softmax = tf.compat.v1.nn.softmax(logits)
         sess.close()

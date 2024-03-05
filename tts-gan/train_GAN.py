@@ -12,6 +12,7 @@ from utils.utils import set_log_dir, save_checkpoint, create_logger
 # from utils.inception_score import _init_inception
 # from utils.fid_score import create_inception_graph, check_or_download_inception
 
+import warnings
 import torch
 import torch.multiprocessing as mp
 import torch.distributed as dist
@@ -44,7 +45,9 @@ def main():
     
     if args.seed is not None:
         torch.manual_seed(args.random_seed)
+        #torch.manual_seed(args.random_seed)
         torch.cuda.manual_seed(args.random_seed)
+        #torch.manual_seed_all(args.random_seed)
         torch.cuda.manual_seed_all(args.random_seed)
         np.random.seed(args.random_seed)
         random.seed(args.random_seed)
@@ -60,6 +63,7 @@ def main():
 
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
 
+    #ngpus_per_node = torch.device_count()
     ngpus_per_node = torch.cuda.device_count()
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
@@ -118,7 +122,7 @@ def main_worker(gpu, ngpus_per_node, args):
     print(gen_net)
     dis_net = Discriminator()
     print(dis_net)
-    if not torch.cuda.is_available():
+    if not torch.cuda.is_available(): #if not torch.cuda.is_available():
         print('using CPU, this will be slow')
     elif args.distributed:
         # For multiprocessing distributed, DistributedDataParallel constructor
@@ -155,6 +159,8 @@ def main_worker(gpu, ngpus_per_node, args):
         gen_net.cuda(args.gpu)
         dis_net.cuda(args.gpu)
     else:
+        #gen_net = torch.nn.DataParallel(gen_net)
+        #dis_net = torch.nn.DataParallel(dis_net)
         gen_net = torch.nn.DataParallel(gen_net).cuda()
         dis_net = torch.nn.DataParallel(dis_net).cuda()
     print(dis_net) if args.rank == 0 else 0
@@ -176,15 +182,15 @@ def main_worker(gpu, ngpus_per_node, args):
     dis_scheduler = LinearLrDecay(dis_optimizer, args.d_lr, 0.0, 0, args.max_iter * args.n_critic)
 
     # fid stat 
-#     if args.dataset.lower() == 'cifar10':
-#         fid_stat = 'fid_stat/fid_stats_cifar10_train.npz'
-#     elif args.dataset.lower() == 'stl10':
-#         fid_stat = 'fid_stat/stl10_train_unlabeled_fid_stats_48.npz'
-#     elif args.fid_stat is not None:
-#         fid_stat = args.fid_stat
-#     else:
-#         raise NotImplementedError(f'no fid stat for {args.dataset.lower()}')
-#     assert os.path.exists(fid_stat)
+    if args.dataset.lower() == 'cifar10':
+        fid_stat = 'fid_stat/fid_stats_cifar10_train.npz'
+    elif args.dataset.lower() == 'stl10':
+        fid_stat = 'fid_stat/stl10_train_unlabeled_fid_stats_48.npz'
+    elif args.fid_stat is not None:
+        fid_stat = args.fid_stat
+    else:
+        raise NotImplementedError(f'no fid stat for {args.dataset.lower()}')
+    assert os.path.exists(fid_stat)
 
 
     # epoch number for dis_net
@@ -209,6 +215,7 @@ def main_worker(gpu, ngpus_per_node, args):
         args.max_epoch = np.ceil(args.max_iter * args.n_critic / len(train_loader))
 
     # initial
+    #fixed_z = torch.FloatTensor(np.random.normal(0, 1, (100, args.latent_dim)))
     fixed_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (100, args.latent_dim)))
     avg_gen_net = deepcopy(gen_net).cpu()
     gen_avg_param = copy_params(avg_gen_net)

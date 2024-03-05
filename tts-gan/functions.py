@@ -19,7 +19,7 @@ import cv2
 
 # from utils.fid_score import calculate_fid_given_paths
 from utils.torch_fid_score import get_fid
-# from utils.inception_score import get_inception_scorepython exps/dist1_new_church256.py --node 0022 --rank 0sample
+from utils.inception_score import get_inception_score #python exps/dist1_new_church256.py --node 0022 --rank 0sample
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +80,12 @@ def train_d(args, gen_net: nn.Module, dis_net: nn.Module, dis_optimizer, train_l
         
 
         # Adversarial ground truths
-        real_imgs = imgs.type(torch.cuda.FloatTensor).cuda(args.gpu, non_blocking=True)
+        real_imgs = imgs.type(torch.FloatTensor)
+        # real_imgs = imgs.type(torch.cuda.FloatTensor).cuda(args.gpu, non_blocking=True)
 
         # Sample noise as generator input
-        z = torch.cuda.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim))).cuda(args.gpu, non_blocking=True)
+        z = torch.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim)))
+        # z = torch.cuda.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim))).cuda(args.gpu, non_blocking=True)
 
         # ---------------------
         #  Train Discriminator
@@ -215,11 +217,16 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
         
 
         # Adversarial ground truths
-        real_imgs = imgs.type(torch.cuda.FloatTensor).cuda(args.gpu, non_blocking=True)
+        real_imgs = imgs.type(torch.FloatTensor)
+        #real_imgs = imgs.type(torch.cuda.FloatTensor).cuda(args.gpu, non_blocking=True)
 
+        #imgs real image
         # Sample noise as generator input
-        z = torch.cuda.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim))).cuda(args.gpu, non_blocking=True)
-
+        z = torch.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim)))
+        # z = torch.cuda.FloatTensor(np.random.normal(0, 1, (imgs.shape[0], args.latent_dim))).cuda(args.gpu, non_blocking=True)
+        #z: noise
+        print(imgs)
+        print(z)
         # ---------------------
         #  Train Discriminator
         # ---------------------
@@ -292,7 +299,8 @@ def train(args, gen_net: nn.Module, dis_net: nn.Module, gen_optimizer, dis_optim
         if global_steps % (args.n_critic * args.accumulated_times) == 0:
             
             for accumulated_idx in range(args.g_accumulated_times):
-                gen_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.gen_batch_size, args.latent_dim)))
+                gen_z = torch.FloatTensor(np.random.normal(0, 1, (args.gen_batch_size, args.latent_dim)))
+                #gen_z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.gen_batch_size, args.latent_dim)))
                 gen_imgs = gen_net(gen_z)
                 fake_validity = dis_net(gen_imgs)
 
@@ -395,7 +403,8 @@ def get_is(args, gen_net: nn.Module, num_img):
     eval_iter = num_img // args.eval_batch_size
     img_list = list()
     for _ in range(eval_iter):
-        z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.eval_batch_size, args.latent_dim)))
+        z = torch.FloatTensor(np.random.normal(0, 1, (args.eval_batch_size, args.latent_dim)))
+        #z = torch.cuda.FloatTensor(np.random.normal(0, 1, (args.eval_batch_size, args.latent_dim)))
 
         # Generate a batch of images
         gen_imgs = gen_net(z).mul_(127.5).add_(127.5).clamp_(0.0, 255.0).permute(0, 2, 3, 1).to('cpu',
@@ -557,7 +566,8 @@ def load_params(model, new_param, args, mode="gpu"):
         for p, new_p in zip(model.parameters(), new_param):
             cpu_p = deepcopy(new_p)
 #             p.data.copy_(cpu_p.cuda().to(f"cuda:{args.gpu}"))
-            p.data.copy_(cpu_p.cuda().to("cpu"))
+            p.data.copy_(cpu_p.to("cpu"))
+            # p.data.copy_(cpu_p.cuda().to("cpu"))
             del cpu_p
     
     else:
