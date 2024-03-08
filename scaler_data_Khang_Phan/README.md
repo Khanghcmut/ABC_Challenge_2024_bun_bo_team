@@ -1,1 +1,0 @@
-model file in XGB smote and RF smote is available at https://drive.google.com/drive/folders/1wHC57zGmC6_d9J2FKeNSb2RhmgIbT7Cc?usp=share_link
